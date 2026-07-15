@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Define the color value separately so the theme can resolve it -->
+    <color name="purple_500">#6200EE</color>
+
+    <style name="Theme.Notes" parent="Theme.AppCompat.Light.NoActionBar">
+        <!-- Reference the color resource instead of hardcoding it -->
+        <item name="colorPrimary">@color/purple_500</item>
+    </style>
+</resources>
