@@ -5,14 +5,30 @@ import androidx.room.Database
 import androidx.room.Room
 import androidx.room.RoomDatabase
 
-@Database(entities = [Note::class], version = 1)
+@Database(entities = [Note::class], version = 2, exportSchema = false)
 abstract class AppDatabase : RoomDatabase() {
+
     abstract fun noteDao(): NoteDao
 
     companion object {
-        @Volatile private var INSTANCE: AppDatabase? = null
-        fun getDatabase(context: Context): AppDatabase = INSTANCE ?: synchronized(this) {
-            Room.databaseBuilder(context, AppDatabase::class.java, "journote_db").build().also { INSTANCE = it }
+        @Volatile
+        private var INSTANCE: AppDatabase? = null
+
+        fun getDatabase(context: Context): AppDatabase {
+            return INSTANCE ?: synchronized(this) {
+                val instance = Room.databaseBuilder(
+                    context.applicationContext,
+                    AppDatabase::class.java,
+                    "journote_database"
+                )
+                    // This tells Room: If the version number increases, nuke the old tables
+                    // and build new ones using the latest Note.kt schema.
+                    .fallbackToDestructiveMigration(false)
+                    .build()
+
+                INSTANCE = instance
+                instance
+            }
         }
     }
 }

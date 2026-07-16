@@ -10,5 +10,6 @@ data class Note(
     val content: String,
     val isArchived: Boolean = false,
     val isTrashed: Boolean = false,
+    val trashedTimestamp: Long = 0L,
     val timestamp: Long = System.currentTimeMillis()
 )

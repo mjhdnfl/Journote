@@ -11,7 +11,9 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Language
 import androidx.compose.material.icons.filled.Lock
+import androidx.compose.material.icons.filled.Notifications
 import androidx.compose.material.icons.filled.Palette
+import androidx.compose.material.icons.filled.Storage
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -19,10 +21,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 
-// Keeping the Enum here so MainActivity doesn't break
 enum class ThemeOption(val label: String) {
     SYSTEM("System Default"),
     LIGHT("Light"),
@@ -33,7 +33,8 @@ enum class ThemeOption(val label: String) {
 @Composable
 fun SettingsScreen(
     onBack: () -> Unit,
-    onNavigateToAppearance: () -> Unit
+    onNavigateToAppearance: () -> Unit,
+    onNavigateToData: () -> Unit // This was missing!
 ) {
     Scaffold(
         topBar = {
@@ -57,23 +58,33 @@ fun SettingsScreen(
         ) {
             Text(
                 text = "Settings",
-                style = MaterialTheme.typography.displayMedium.copy(fontWeight = FontWeight.Black),
+                style = MaterialTheme.typography.displayMedium,
                 color = MaterialTheme.colorScheme.onBackground,
                 modifier = Modifier.padding(vertical = 16.dp)
             )
 
-            // The unified block container matching the image
             Surface(
                 shape = RoundedCornerShape(24.dp),
                 color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.4f),
                 modifier = Modifier.fillMaxWidth()
             ) {
                 Column {
+
+                    SettingsBlockItem(
+                        title = "Notifications",
+                        subtitle = "Reminders and summaries",
+                        icon = Icons.Default.Notifications,
+                        iconBgColor = Color(214, 145, 84),
+                        onClick = { /* TODO */ }
+                    )
+
+                    HorizontalDivider(color = MaterialTheme.colorScheme.background, thickness = 2.dp)
+
                     SettingsBlockItem(
                         title = "Appearance",
-                        subtitle = "Themes, layout, and visual styles",
+                        subtitle = "Themes, layout, and visuals",
                         icon = Icons.Default.Palette,
-                        iconBgColor = Color(0xFF8E5A69), // Muted mauve/pink from your image
+                        iconBgColor = Color(0xFF8E5A69),
                         onClick = onNavigateToAppearance
                     )
 
@@ -83,8 +94,18 @@ fun SettingsScreen(
                         title = "Security",
                         subtitle = "App lock and biometric authentication",
                         icon = Icons.Default.Lock,
-                        iconBgColor = Color(0xFF4A5C7A), // Muted slate blue
+                        iconBgColor = Color(0xFF4A5C7A),
                         onClick = { /* TODO */ }
+                    )
+
+                    HorizontalDivider(color = MaterialTheme.colorScheme.background, thickness = 2.dp)
+
+                    SettingsBlockItem(
+                        title = "Data",
+                        subtitle = "Trash, backup, and sync",
+                        icon = Icons.Default.Storage,
+                        iconBgColor = Color(0xFFD4A373),
+                        onClick = onNavigateToData
                     )
 
                     HorizontalDivider(color = MaterialTheme.colorScheme.background, thickness = 2.dp)
@@ -93,7 +114,7 @@ fun SettingsScreen(
                         title = "Language",
                         subtitle = "English",
                         icon = Icons.Default.Language,
-                        iconBgColor = Color(0xFF5A7A69), // Muted green
+                        iconBgColor = Color(0xFF5A7A69),
                         onClick = { /* TODO */ }
                     )
                 }
@@ -102,7 +123,6 @@ fun SettingsScreen(
     }
 }
 
-// Reusable component for the block-style items
 @Composable
 fun SettingsBlockItem(
     title: String,
@@ -136,7 +156,7 @@ fun SettingsBlockItem(
         Column(modifier = Modifier.weight(1f)) {
             Text(
                 text = title,
-                style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
+                style = MaterialTheme.typography.titleMedium,
                 color = MaterialTheme.colorScheme.onSurface
             )
             Spacer(modifier = Modifier.height(2.dp))

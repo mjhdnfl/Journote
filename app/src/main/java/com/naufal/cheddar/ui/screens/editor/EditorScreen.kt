@@ -2,7 +2,7 @@ package com.naufal.cheddar.ui.screens.editor
 
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.outlined.Archive
 import androidx.compose.material.icons.outlined.Brush
 import androidx.compose.material.icons.outlined.Delete
@@ -19,7 +19,8 @@ fun EditorScreen(
     note: Note?, // Accepts an existing note (or null for a new one)
     onBack: () -> Unit,
     onSave: (title: String, content: String) -> Unit,
-    onDelete: () -> Unit // Triggers the actual delete action
+    onDelete: () -> Unit, // Triggers the actual delete action
+    onArchive: () -> Unit
 ) {
     // These now populate with the note's text if it exists
     var title by remember(note) { mutableStateOf(note?.title ?: "") }
@@ -30,10 +31,10 @@ fun EditorScreen(
         topBar = {
             TopAppBar(
                 title = { },
-                navigationIcon = { IconButton(onClick = onBack) { Icon(Icons.Default.ArrowBack, contentDescription = "Back") } },
+                navigationIcon = { IconButton(onClick = onBack) { Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back") } },
                 actions = {
                     IconButton(onClick = { /* TODO */ }) { Icon(Icons.Outlined.Brush, contentDescription = "Draw") }
-                    IconButton(onClick = { /* TODO */ }) { Icon(Icons.Outlined.Archive, contentDescription = "Archive") }
+                    IconButton(onClick = onArchive) { Icon(Icons.Outlined.Archive, contentDescription = "Archive") }
 
                     // Only show delete button if the note actually exists in the database
                     if (note != null) {

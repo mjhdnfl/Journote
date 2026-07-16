@@ -16,7 +16,10 @@ import androidx.compose.ui.unit.dp
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun CollectionsScreen() {
+fun CollectionsScreen(
+    archiveCount: Int,
+    onNavigateToArchive: () -> Unit
+) {
     Scaffold(
         topBar = {
             LargeTopAppBar(
@@ -56,8 +59,8 @@ fun CollectionsScreen() {
                     title = "Archive",
                     icon = Icons.Default.Archive,
                     iconTint = MaterialTheme.colorScheme.primary,
-                    itemCount = 0,
-                    onClick = { /* TODO: Navigate to Archive */ }
+                    itemCount = archiveCount,
+                    onClick = onNavigateToArchive
                 )
             }
 

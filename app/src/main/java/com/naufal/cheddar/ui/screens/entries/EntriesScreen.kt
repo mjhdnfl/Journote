@@ -1,8 +1,9 @@
 package com.naufal.cheddar.ui.screens.entries
 
 import androidx.compose.animation.*
-import androidx.compose.animation.core.Spring
-import androidx.compose.animation.core.spring
+import androidx.compose.animation.core.*
+import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -17,33 +18,27 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.naufal.cheddar.data.Note
 import kotlinx.coroutines.delay
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun EntriesScreen(
-    notes: List<Note>,
+    notes: List<Note>, // Will now only receive untrashed notes
     hasSeenSplash: Boolean,
     onSplashFinished: () -> Unit,
     onMenuClick: () -> Unit,
+    onSearchClick: () -> Unit, // NEW PARAMETER
     onFabClick: () -> Unit,
     onEntryClick: (Int) -> Unit
 ) {
     val listState = rememberLazyListState()
     val isScrolled by remember { derivedStateOf { listState.firstVisibleItemIndex > 0 || listState.firstVisibleItemScrollOffset > 0 } }
-
-    // State to track if the FAB menu is open
     var isFabExpanded by remember { mutableStateOf(false) }
 
     LaunchedEffect(hasSeenSplash) {
-        if (!hasSeenSplash) {
-            delay(2500)
-            onSplashFinished()
-        }
+        if (!hasSeenSplash) { delay(2500); onSplashFinished() }
     }
 
     val showLargeTitle = !hasSeenSplash && !isScrolled
@@ -51,7 +46,6 @@ fun EntriesScreen(
     Scaffold(
         floatingActionButton = {
             Column(horizontalAlignment = Alignment.End) {
-                // The expandable menu options
                 AnimatedVisibility(
                     visible = isFabExpanded,
                     enter = fadeIn() + expandVertically(expandFrom = Alignment.Bottom),
@@ -62,28 +56,25 @@ fun EntriesScreen(
                         verticalArrangement = Arrangement.spacedBy(12.dp),
                         modifier = Modifier.padding(bottom = 16.dp)
                     ) {
-                        FabOption(label = "Image", icon = Icons.Outlined.Image) { /* TODO */ }
-                        FabOption(label = "Drawing", icon = Icons.Outlined.Brush) { /* TODO */ }
-                        FabOption(label = "Audio", icon = Icons.Outlined.Mic) { /* TODO */ }
-                        FabOption(label = "List", icon = Icons.Outlined.CheckBox) { /* TODO */ }
+                        FabOption(label = "Image", icon = Icons.Outlined.Image) { }
+                        FabOption(label = "Drawing", icon = Icons.Outlined.Brush) { }
+                        FabOption(label = "Audio", icon = Icons.Outlined.Mic) { }
+                        FabOption(label = "List", icon = Icons.Outlined.CheckBox) { }
                         FabOption(label = "Text", icon = Icons.Outlined.TextFields) {
                             isFabExpanded = false
-                            onFabClick() // Launch normal editor
+                            onFabClick()
                         }
                     }
                 }
 
-                // The Main FAB
                 FloatingActionButton(
                     onClick = { isFabExpanded = !isFabExpanded },
                     containerColor = MaterialTheme.colorScheme.surfaceVariant,
                     contentColor = MaterialTheme.colorScheme.onSurfaceVariant,
                     shape = RoundedCornerShape(24.dp),
-                    // Increased size to match Google Keep's chunkier button
                     modifier = Modifier.size(68.dp),
                     elevation = FloatingActionButtonDefaults.elevation(defaultElevation = 2.dp)
                 ) {
-                    // Smoothly animate between the Edit pencil and a Close X
                     Crossfade(targetState = isFabExpanded, label = "fab_icon") { expanded ->
                         if (expanded) {
                             Icon(Icons.Default.Close, contentDescription = "Close", modifier = Modifier.size(28.dp))
@@ -96,6 +87,7 @@ fun EntriesScreen(
         }
     ) { innerPadding ->
         Column(modifier = Modifier.fillMaxSize().padding(innerPadding)) {
+
             AnimatedVisibility(
                 visible = showLargeTitle,
                 enter = fadeIn(spring(stiffness = Spring.StiffnessLow)) + expandVertically(spring(stiffness = Spring.StiffnessLow)),
@@ -103,33 +95,48 @@ fun EntriesScreen(
             ) {
                 Text(
                     text = "Journote",
-                    // Also enforced the Black weight here just in case!
-                    style = MaterialTheme.typography.displayLarge.copy(fontWeight = FontWeight.Black),
+                    style = MaterialTheme.typography.displayLarge,
                     color = MaterialTheme.colorScheme.primary,
                     textAlign = TextAlign.Center,
                     modifier = Modifier.fillMaxWidth().padding(top = 48.dp, bottom = 24.dp)
                 )
             }
 
+            // The restored Pill Search Bar
             Row(
                 verticalAlignment = Alignment.CenterVertically,
                 modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 8.dp)
             ) {
                 IconButton(onClick = onMenuClick) { Icon(Icons.Default.Menu, contentDescription = "Menu") }
                 Spacer(modifier = Modifier.width(8.dp))
+
+                // Clicking this now triggers the expanding search screen
                 Surface(
                     shape = MaterialTheme.shapes.medium,
                     color = MaterialTheme.colorScheme.surfaceVariant,
-                    modifier = Modifier.weight(1f).height(52.dp)
+                    modifier = Modifier
+                        .weight(1f)
+                        .height(52.dp)
+                        .clip(MaterialTheme.shapes.medium)
+                        .clickable { onSearchClick() }
                 ) {
-                    Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.padding(horizontal = 16.dp)) {
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        modifier = Modifier.padding(horizontal = 16.dp)
+                    ) {
                         Icon(Icons.Default.Search, contentDescription = "Search", tint = MaterialTheme.colorScheme.onSurfaceVariant)
                         Spacer(modifier = Modifier.width(12.dp))
-                        Text("Search entries...", style = MaterialTheme.typography.bodyLarge, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                        Text("Search Journotes", style = MaterialTheme.typography.bodyLarge, color = MaterialTheme.colorScheme.onSurfaceVariant)
                     }
                 }
+
                 Spacer(modifier = Modifier.width(8.dp))
-                IconButton(onClick = { }, modifier = Modifier.clip(CircleShape).size(40.dp)) { Icon(Icons.Default.Person, contentDescription = "Account") }
+                IconButton(
+                    onClick = { },
+                    modifier = Modifier.clip(CircleShape).size(40.dp).background(MaterialTheme.colorScheme.surfaceVariant)
+                ) {
+                    Icon(Icons.Default.Person, contentDescription = "Account")
+                }
             }
 
             LazyColumn(
@@ -156,30 +163,15 @@ fun EntriesScreen(
     }
 }
 
-// Custom reusable component for the pop-up pill buttons
 @Composable
-private fun FabOption(
-    label: String,
-    icon: androidx.compose.ui.graphics.vector.ImageVector,
-    onClick: () -> Unit
-) {
+private fun FabOption(label: String, icon: androidx.compose.ui.graphics.vector.ImageVector, onClick: () -> Unit) {
     Surface(
-        shape = CircleShape,
-        color = MaterialTheme.colorScheme.surfaceVariant,
-        onClick = onClick,
-        shadowElevation = 2.dp
+        shape = CircleShape, color = MaterialTheme.colorScheme.surfaceVariant, onClick = onClick, shadowElevation = 2.dp
     ) {
-        Row(
-            verticalAlignment = Alignment.CenterVertically,
-            modifier = Modifier.padding(horizontal = 20.dp, vertical = 12.dp)
-        ) {
+        Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.padding(horizontal = 20.dp, vertical = 12.dp)) {
             Icon(icon, contentDescription = null, tint = MaterialTheme.colorScheme.onSurfaceVariant)
             Spacer(modifier = Modifier.width(12.dp))
-            Text(
-                text = label,
-                style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Medium),
-                color = MaterialTheme.colorScheme.onSurfaceVariant
-            )
+            Text(text = label, style = MaterialTheme.typography.titleMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
         }
     }
 }

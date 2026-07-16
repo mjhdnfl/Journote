@@ -1,7 +1,11 @@
 package com.naufal.cheddar.ui.navigation
 
+import androidx.compose.animation.*
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.List
+import androidx.compose.material.icons.automirrored.outlined.List
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material.icons.outlined.*
 import androidx.compose.material3.*
@@ -26,22 +30,37 @@ import com.naufal.cheddar.ui.screens.collections.CollectionsScreen
 import com.naufal.cheddar.ui.screens.insights.InsightsScreen
 import com.naufal.cheddar.ui.screens.settings.SettingsScreen
 import com.naufal.cheddar.ui.screens.settings.AppearanceScreen
+import com.naufal.cheddar.ui.screens.settings.DataScreen
 import com.naufal.cheddar.ui.screens.settings.ThemeOption
+import com.naufal.cheddar.ui.screens.trash.TrashScreen
+import com.naufal.cheddar.ui.screens.archive.ArchiveScreen
 import com.naufal.cheddar.ui.screens.about.AboutScreen
+import com.naufal.cheddar.ui.screens.search.SearchScreen
 import com.naufal.cheddar.ui.viewmodel.JournoteViewModel
 import com.naufal.cheddar.ui.viewmodel.JournoteViewModelFactory
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.launch
 
-sealed class Screen(val route: String, val title: String, val icon: ImageVector) {
-    object Entries : Screen("entries", "Entries", Icons.Default.ViewList)
-    object Collections : Screen("collections", "Collections", Icons.Default.Folder)
-    object Insights : Screen("insights", "Insights", Icons.Outlined.ViewSidebar)
-    object Settings : Screen("settings", "Settings", Icons.Default.Settings)
-    object Appearance : Screen("appearance", "Appearance", Icons.Outlined.Palette)
-    object About : Screen("about", "About", Icons.Outlined.Info)
+sealed class Screen(
+    val route: String,
+    val title: String,
+    val selectedIcon: ImageVector,
+    val unselectedIcon: ImageVector
+) {
+    object Entries : Screen("entries", "Entries",
+        Icons.AutoMirrored.Filled.List, Icons.AutoMirrored.Outlined.List
+    )
+    object Search : Screen("search", "Search", Icons.Filled.Search, Icons.Outlined.Search)
+    object Collections : Screen("collections", "Collections", Icons.Filled.SpaceDashboard, Icons.Outlined.SpaceDashboard)
+    object Insights : Screen("insights", "Insights", Icons.Filled.Insights, Icons.Outlined.Insights)
+    object Settings : Screen("settings", "Settings", Icons.Filled.Settings, Icons.Outlined.Settings)
+    object Appearance : Screen("appearance", "Appearance", Icons.Filled.Palette, Icons.Outlined.Palette)
+    object Data : Screen("data", "Data", Icons.Filled.Tune, Icons.Outlined.Tune)
+    object Archive : Screen("archive", "Archive", Icons.Filled.Archive, Icons.Outlined.Archive)
+    object Trash : Screen("trash", "Trash", Icons.Filled.Delete, Icons.Outlined.Delete)
+    object About : Screen("about", "About", Icons.Filled.Info, Icons.Outlined.Info)
 
-    object Editor : Screen("editor?noteId={noteId}", "Editor", Icons.Default.Edit) {
+    object Editor : Screen("editor?noteId={noteId}", "Editor", Icons.Filled.Edit, Icons.Outlined.Edit) {
         fun passId(id: Int) = "editor?noteId=$id"
     }
 }
@@ -107,8 +126,14 @@ fun JournoteApp(
                 HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp))
                 Spacer(Modifier.height(16.dp))
 
-                DrawerItem("Archive", Icons.Outlined.Archive) { }
-                DrawerItem("Trash", Icons.Outlined.Delete) { }
+                DrawerItem("Archive", Icons.Outlined.Archive) {
+                    navController.navigate(Screen.Archive.route)
+                    scope.launch { drawerState.close() }
+                }
+                DrawerItem("Trash", Icons.Outlined.Delete) {
+                    navController.navigate(Screen.Trash.route)
+                    scope.launch { drawerState.close() }
+                }
                 DrawerItem("About", Icons.Outlined.Info) {
                     navController.navigate(Screen.About.route)
                     scope.launch { drawerState.close() }
@@ -129,13 +154,29 @@ fun JournoteApp(
                 modifier = Modifier.padding(innerPadding)
             ) {
                 composable(Screen.Entries.route) {
-                    val notes by viewModel.allNotes.collectAsState()
+                    val allNotes by viewModel.allNotes.collectAsState()
+                    val activeNotes = allNotes.filter { !it.isTrashed && !it.isArchived }
+
                     EntriesScreen(
-                        notes = notes,
+                        notes = activeNotes,
                         hasSeenSplash = hasSeenSplash,
                         onSplashFinished = { hasSeenSplash = true },
                         onMenuClick = { scope.launch { drawerState.open() } },
+                        onSearchClick = { navController.navigate(Screen.Search.route) },
                         onFabClick = { navController.navigate("editor") },
+                        onEntryClick = { noteId -> navController.navigate(Screen.Editor.passId(noteId)) }
+                    )
+                }
+
+                composable(
+                    route = Screen.Search.route,
+                    enterTransition = { scaleIn(initialScale = 0.9f, animationSpec = tween(250)) + fadeIn(tween(250)) },
+                    exitTransition = { scaleOut(targetScale = 0.9f, animationSpec = tween(250)) + fadeOut(tween(250)) }
+                ) {
+                    val allNotes by viewModel.allNotes.collectAsState()
+                    SearchScreen(
+                        notes = allNotes.filter { !it.isTrashed && !it.isArchived },
+                        onBack = { navController.popBackStack() },
                         onEntryClick = { noteId -> navController.navigate(Screen.Editor.passId(noteId)) }
                     )
                 }
@@ -154,49 +195,66 @@ fun JournoteApp(
                             viewModel.saveNote(id = note?.id ?: 0, title = title, content = content)
                             navController.popBackStack()
                         },
-                        onDelete = {
-                            note?.let { viewModel.deleteNote(it) }
-                            navController.popBackStack()
-                        }
+                        onDelete = { note?.let { viewModel.trashNote(it) }; navController.popBackStack() },
+                        onArchive = { note?.let { viewModel.archiveNote(it) }; navController.popBackStack() }
                     )
                 }
 
-                composable(Screen.Collections.route) { CollectionsScreen() }
+                composable(Screen.Collections.route) {
+                    val allNotes by viewModel.allNotes.collectAsState()
+                    CollectionsScreen(
+                        archiveCount = allNotes.count { it.isArchived && !it.isTrashed },
+                        onNavigateToArchive = { navController.navigate(Screen.Archive.route) }
+                    )
+                }
+
+                composable(Screen.Archive.route) {
+                    val allNotes by viewModel.allNotes.collectAsState()
+                    ArchiveScreen(
+                        archivedNotes = allNotes.filter { it.isArchived && !it.isTrashed },
+                        onBack = { navController.popBackStack() },
+                        onUnarchive = { viewModel.unarchiveNote(it) },
+                        onEntryClick = { navController.navigate(Screen.Editor.passId(it)) }
+                    )
+                }
 
                 composable(Screen.Insights.route) {
-                    val notes by viewModel.allNotes.collectAsState()
-                    InsightsScreen(notes = notes)
+                    val allNotes by viewModel.allNotes.collectAsState()
+                    InsightsScreen(notes = allNotes.filter { !it.isTrashed && !it.isArchived })
                 }
 
                 composable(Screen.Settings.route) {
                     SettingsScreen(
                         onBack = { navController.popBackStack() },
-                        onNavigateToAppearance = { navController.navigate(Screen.Appearance.route) }
+                        onNavigateToAppearance = { navController.navigate(Screen.Appearance.route) },
+                        onNavigateToData = { navController.navigate(Screen.Data.route) }
                     )
                 }
 
                 composable(Screen.Appearance.route) {
-                    AppearanceScreen(
+                    AppearanceScreen(onBack = { navController.popBackStack() }, onThemeChange = onThemeChange, onAmoledToggle = onAmoledToggle)
+                }
+
+                composable(Screen.Data.route) { DataScreen(onBack = { navController.popBackStack() }) }
+
+                composable(Screen.Trash.route) {
+                    val allNotes by viewModel.allNotes.collectAsState()
+                    TrashScreen(
+                        trashedNotes = allNotes.filter { it.isTrashed },
                         onBack = { navController.popBackStack() },
-                        onThemeChange = onThemeChange,
-                        onAmoledToggle = onAmoledToggle
+                        onRestore = { viewModel.restoreNote(it) },
+                        onDeleteForever = { viewModel.deleteNoteForever(it) }
                     )
                 }
 
-                composable(Screen.About.route) {
-                    AboutScreen(onBack = { navController.popBackStack() })
-                }
+                composable(Screen.About.route) { AboutScreen(onBack = { navController.popBackStack() }) }
             }
         }
     }
 }
 
 @Composable
-private fun DrawerItem(
-    label: String,
-    icon: ImageVector,
-    onClick: () -> Unit
-) {
+private fun DrawerItem(label: String, icon: ImageVector, onClick: () -> Unit) {
     NavigationDrawerItem(
         label = { Text(label, style = MaterialTheme.typography.labelLarge) },
         icon = { Icon(icon, contentDescription = label) },
@@ -210,10 +268,16 @@ private fun DrawerItem(
 private fun JournoteBottomBar(navController: NavHostController, items: List<Screen>, currentRoute: String?) {
     NavigationBar {
         items.forEach { screen ->
+            val isSelected = currentRoute?.contains(screen.route) == true
             NavigationBarItem(
-                icon = { Icon(screen.icon, contentDescription = screen.title) },
+                icon = {
+                    Icon(
+                        imageVector = if (isSelected) screen.selectedIcon else screen.unselectedIcon,
+                        contentDescription = screen.title
+                    )
+                },
                 label = { Text(screen.title, style = MaterialTheme.typography.labelLarge.copy(fontSize = 12.sp)) },
-                selected = currentRoute?.contains(screen.route) == true,
+                selected = isSelected,
                 onClick = {
                     navController.navigate(screen.route) {
                         popUpTo(navController.graph.findStartDestination().id) { saveState = true }

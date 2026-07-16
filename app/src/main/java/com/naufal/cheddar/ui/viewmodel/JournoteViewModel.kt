@@ -20,8 +20,38 @@ class JournoteViewModel(private val dao: NoteDao) : ViewModel() {
         viewModelScope.launch { dao.insert(Note(id = id, title = title, content = content)) }
     }
 
-    // Soft-deletes the note by moving it to the trash
-    fun deleteNote(note: Note) {
-        viewModelScope.launch { dao.update(note.copy(isTrashed = true)) }
+    // Soft delete: Moves to trash
+    fun trashNote(note: Note) {
+        viewModelScope.launch {
+            dao.update(note.copy(isTrashed = true, trashedTimestamp = System.currentTimeMillis()))
+        }
+    }
+
+    // Restores from trash
+    fun restoreNote(note: Note) {
+        viewModelScope.launch {
+            dao.update(note.copy(isTrashed = false, trashedTimestamp = 0L))
+        }
+    }
+
+    // Hard delete: Nukes it permanently
+    fun deleteNoteForever(note: Note) {
+        viewModelScope.launch {
+            dao.delete(note)
+        }
+    }
+
+    // Sends a note to the Archive
+    fun archiveNote(note: Note) {
+        viewModelScope.launch {
+            dao.update(note.copy(isArchived = true))
+        }
+    }
+
+    // Brings a note back to the main Entries screen
+    fun unarchiveNote(note: Note) {
+        viewModelScope.launch {
+            dao.update(note.copy(isArchived = false))
+        }
     }
 }
