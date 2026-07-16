@@ -1,5 +1,6 @@
 package com.naufal.cheddar
 
+import android.content.Context
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -26,12 +27,17 @@ class MainActivity : ComponentActivity() {
         val database = AppDatabase.getDatabase(this)
         val viewModelFactory = JournoteViewModelFactory(database.noteDao())
 
-        setContent {
-            // State for the 3-way theme
-            var themeOption by remember { mutableStateOf(ThemeOption.SYSTEM) }
-            var isAmoledTheme by remember { mutableStateOf(false) }
+        // Initialize SharedPreferences to store small data persistently
+        val sharedPrefs = getSharedPreferences("journote_prefs", Context.MODE_PRIVATE)
 
-            // Determine if the app should actually be dark based on the option selected
+        setContent {
+            // Read saved values when the app starts, defaulting to SYSTEM and false
+            val savedTheme = sharedPrefs.getString("theme", ThemeOption.SYSTEM.name) ?: ThemeOption.SYSTEM.name
+            val savedAmoled = sharedPrefs.getBoolean("amoled", false)
+
+            var themeOption by remember { mutableStateOf(ThemeOption.valueOf(savedTheme)) }
+            var isAmoledTheme by remember { mutableStateOf(savedAmoled) }
+
             val systemDarkTheme = isSystemInDarkTheme()
             val isDarkTheme = when (themeOption) {
                 ThemeOption.SYSTEM -> systemDarkTheme
@@ -46,8 +52,16 @@ class MainActivity : ComponentActivity() {
             ) {
                 JournoteApp(
                     viewModelFactory = viewModelFactory,
-                    onThemeChange = { newTheme -> themeOption = newTheme }, // Pass the function down
-                    onAmoledToggle = { isAmoledTheme = !isAmoledTheme }
+                    onThemeChange = { newTheme ->
+                        themeOption = newTheme
+                        // Save the choice instantly
+                        sharedPrefs.edit().putString("theme", newTheme.name).apply()
+                    },
+                    onAmoledToggle = {
+                        isAmoledTheme = !isAmoledTheme
+                        // Save the choice instantly
+                        sharedPrefs.edit().putBoolean("amoled", isAmoledTheme).apply()
+                    }
                 )
             }
         }

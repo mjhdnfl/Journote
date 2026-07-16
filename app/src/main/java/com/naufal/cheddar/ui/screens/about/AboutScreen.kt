@@ -8,28 +8,33 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.outlined.Code
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.naufal.cheddar.R
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AboutScreen(onBack: () -> Unit) {
+    // Initialize the URI handler to open web links
+    val uriHandler = LocalUriHandler.current
+
     Scaffold(
         topBar = {
             TopAppBar(
                 title = { },
                 navigationIcon = {
-                    IconButton(onClick = onBack) { Icon(Icons.Default.ArrowBack, contentDescription = "Back") }
+                    IconButton(onClick = onBack) {
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
+                    }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(containerColor = MaterialTheme.colorScheme.background)
             )
@@ -42,12 +47,10 @@ fun AboutScreen(onBack: () -> Unit) {
                 .padding(horizontal = 16.dp)
                 .verticalScroll(rememberScrollState())
         ) {
-            // Centered Large Title (Note: Apply your custom Google Sans Flex font family to your typography settings to achieve the exact stretch)
             Text(
                 text = "About",
-                style = MaterialTheme.typography.displayMedium.copy(fontWeight = FontWeight.Black),
-                modifier = Modifier.fillMaxWidth().padding(vertical = 16.dp),
-                textAlign = TextAlign.Center,
+                style = MaterialTheme.typography.displayMedium,
+                modifier = Modifier.padding(bottom = 24.dp),
                 color = MaterialTheme.colorScheme.onBackground
             )
 
@@ -61,15 +64,26 @@ fun AboutScreen(onBack: () -> Unit) {
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         // Placeholder App Icon Circle
                         Box(
-                            modifier = Modifier.size(56.dp).clip(CircleShape).background(MaterialTheme.colorScheme.primaryContainer),
+                            modifier = Modifier
+                                .size(56.dp)
+                                .clip(CircleShape)
+                                .background(MaterialTheme.colorScheme.primaryContainer),
                             contentAlignment = Alignment.Center
                         ) {
-                            Text("J", style = MaterialTheme.typography.titleLarge, color = MaterialTheme.colorScheme.onPrimaryContainer)
+                            Text(
+                                "J",
+                                style = MaterialTheme.typography.titleLarge,
+                                color = MaterialTheme.colorScheme.onPrimaryContainer
+                            )
                         }
                         Spacer(modifier = Modifier.width(16.dp))
                         Column {
-                            Text("Journote", style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold))
-                            Text("Your personal digital journal.", style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                            Text("Journote", style = MaterialTheme.typography.titleLarge)
+                            Text(
+                                "Your personal journal and note-taking app",
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
                         }
                     }
                     Spacer(modifier = Modifier.height(16.dp))
@@ -78,7 +92,7 @@ fun AboutScreen(onBack: () -> Unit) {
                         color = MaterialTheme.colorScheme.primary.copy(alpha = 0.15f)
                     ) {
                         Text(
-                            text = "Version 2.1.0",
+                            text = "Version 2.2.0",
                             modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp),
                             style = MaterialTheme.typography.labelMedium,
                             color = MaterialTheme.colorScheme.primary
@@ -92,11 +106,11 @@ fun AboutScreen(onBack: () -> Unit) {
             // Maintainer Title
             Text(
                 text = "Maintainer",
-                style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold),
+                style = MaterialTheme.typography.titleLarge,
                 modifier = Modifier.padding(bottom = 4.dp)
             )
             Text(
-                text = "The person behind Journote.",
+                text = "The person behind this app",
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                 modifier = Modifier.padding(bottom = 16.dp)
@@ -120,19 +134,19 @@ fun AboutScreen(onBack: () -> Unit) {
                     )
                     Spacer(modifier = Modifier.width(16.dp))
                     Column(modifier = Modifier.weight(1f)) {
-                        Text("Mujahid Naufal", style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold))
+                        Text("Mujahid Naufal", style = MaterialTheme.typography.titleMedium)
                         Text(
-                            text = "Building apps using Kotlin for fun since 2026",
+                            text = "Building apps for fun using Kotlin",
                             style = MaterialTheme.typography.bodySmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
                     }
-                    // IconButton(onClick = { /* TODO: Add Intent to open GitHub URL */ }) {
-//     Icon(
-//         painter = painterResource(id = R.drawable.ic_github),
-//         contentDescription = "GitHub"
-//     )
-// }
+                    IconButton(onClick = { uriHandler.openUri("https://github.com/mjhdnfl") }) {
+                        Icon(
+                            imageVector = Icons.Outlined.Code,
+                            contentDescription = "GitHub Profile"
+                        )
+                    }
                 }
             }
         }

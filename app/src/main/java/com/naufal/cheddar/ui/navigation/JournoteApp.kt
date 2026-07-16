@@ -25,6 +25,7 @@ import com.naufal.cheddar.ui.screens.editor.EditorScreen
 import com.naufal.cheddar.ui.screens.collections.CollectionsScreen
 import com.naufal.cheddar.ui.screens.insights.InsightsScreen
 import com.naufal.cheddar.ui.screens.settings.SettingsScreen
+import com.naufal.cheddar.ui.screens.settings.AppearanceScreen
 import com.naufal.cheddar.ui.screens.settings.ThemeOption
 import com.naufal.cheddar.ui.screens.about.AboutScreen
 import com.naufal.cheddar.ui.viewmodel.JournoteViewModel
@@ -33,13 +34,13 @@ import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.launch
 
 sealed class Screen(val route: String, val title: String, val icon: ImageVector) {
-    object Entries : Screen("entries", "Entries", Icons.Default.Edit)
+    object Entries : Screen("entries", "Entries", Icons.Default.ViewList)
     object Collections : Screen("collections", "Collections", Icons.Default.Folder)
-    object Insights : Screen("insights", "Insights", Icons.Default.Insights)
+    object Insights : Screen("insights", "Insights", Icons.Outlined.ViewSidebar)
     object Settings : Screen("settings", "Settings", Icons.Default.Settings)
+    object Appearance : Screen("appearance", "Appearance", Icons.Outlined.Palette)
     object About : Screen("about", "About", Icons.Outlined.Info)
 
-    // Updated route to accept an optional ID
     object Editor : Screen("editor?noteId={noteId}", "Editor", Icons.Default.Edit) {
         fun passId(id: Int) = "editor?noteId=$id"
     }
@@ -57,14 +58,12 @@ fun JournoteApp(
 
     val viewModel: JournoteViewModel = viewModel(factory = viewModelFactory)
 
-    // Remembers if you've seen the splash text during this app session
     var hasSeenSplash by remember { mutableStateOf(false) }
 
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val currentRoute = navBackStackEntry?.destination?.route
     val bottomNavItems = listOf(Screen.Entries, Screen.Collections, Screen.Insights)
 
-    // Hide bottom bar on the editor screen and deep settings screens
     val isBottomBarVisible = bottomNavItems.any { currentRoute?.contains(it.route) == true }
 
     ModalNavigationDrawer(
@@ -163,14 +162,27 @@ fun JournoteApp(
                 }
 
                 composable(Screen.Collections.route) { CollectionsScreen() }
-                composable(Screen.Insights.route) { InsightsScreen() }
+
+                composable(Screen.Insights.route) {
+                    val notes by viewModel.allNotes.collectAsState()
+                    InsightsScreen(notes = notes)
+                }
+
                 composable(Screen.Settings.route) {
                     SettingsScreen(
+                        onBack = { navController.popBackStack() },
+                        onNavigateToAppearance = { navController.navigate(Screen.Appearance.route) }
+                    )
+                }
+
+                composable(Screen.Appearance.route) {
+                    AppearanceScreen(
                         onBack = { navController.popBackStack() },
                         onThemeChange = onThemeChange,
                         onAmoledToggle = onAmoledToggle
                     )
                 }
+
                 composable(Screen.About.route) {
                     AboutScreen(onBack = { navController.popBackStack() })
                 }

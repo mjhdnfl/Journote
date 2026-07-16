@@ -10,6 +10,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 
@@ -19,15 +20,21 @@ fun CollectionsScreen() {
     Scaffold(
         topBar = {
             LargeTopAppBar(
-                title = { Text("Library") },
-                colors = TopAppBarDefaults.largeTopAppBarColors(
+                title = {
+                    Text(
+                        text = "Library",
+                        // Forces the custom stretched font style to apply
+                        style = MaterialTheme.typography.displayMedium.copy(fontWeight = FontWeight.Black)
+                    )
+                },
+                colors = TopAppBarDefaults.topAppBarColors(
                     containerColor = MaterialTheme.colorScheme.background
                 )
             )
         }
     ) { innerPadding ->
         LazyVerticalGrid(
-            columns = GridCells.Fixed(2), // 2-column grid
+            columns = GridCells.Fixed(2),
             contentPadding = PaddingValues(16.dp),
             horizontalArrangement = Arrangement.spacedBy(12.dp),
             verticalArrangement = Arrangement.spacedBy(12.dp),
@@ -35,14 +42,13 @@ fun CollectionsScreen() {
                 .fillMaxSize()
                 .padding(innerPadding)
         ) {
-            // --- Permanent Folders ---
             item {
                 CollectionFolderCard(
                     title = "Favorites",
                     icon = Icons.Default.Favorite,
-                    iconTint = MaterialTheme.colorScheme.error, // Red for favorites
-                    itemCount = 0, // We will wire this to the DB later
-                    onClick = { /* TODO: Navigate to Favorites Filter */ }
+                    iconTint = MaterialTheme.colorScheme.error,
+                    itemCount = 0,
+                    onClick = { /* TODO: Navigate to Favorites */ }
                 )
             }
             item {
@@ -51,21 +57,10 @@ fun CollectionsScreen() {
                     icon = Icons.Default.Archive,
                     iconTint = MaterialTheme.colorScheme.primary,
                     itemCount = 0,
-                    onClick = { /* TODO: Navigate to Archive Filter */ }
-                )
-            }
-            item {
-                CollectionFolderCard(
-                    title = "Trash",
-                    icon = Icons.Default.Delete,
-                    iconTint = MaterialTheme.colorScheme.secondary,
-                    itemCount = 0,
-                    onClick = { /* TODO: Navigate to Trash Filter */ }
+                    onClick = { /* TODO: Navigate to Archive */ }
                 )
             }
 
-            // --- Custom Tags / Folders Section ---
-            // This item spans across both columns to act as a header
             item(span = { GridItemSpan(2) }) {
                 Text(
                     text = "Your Tags",
@@ -75,7 +70,6 @@ fun CollectionsScreen() {
                 )
             }
 
-            // Placeholder for a custom tag
             item {
                 CollectionFolderCard(
                     title = "Ideas",
@@ -89,7 +83,6 @@ fun CollectionsScreen() {
     }
 }
 
-// Reusable Component for the Grid Items
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun CollectionFolderCard(
@@ -102,7 +95,6 @@ fun CollectionFolderCard(
     OutlinedCard(
         onClick = onClick,
         shape = MaterialTheme.shapes.medium,
-        // aspect ratio 1f makes it a perfect square
         modifier = Modifier.fillMaxWidth().aspectRatio(1f)
     ) {
         Column(
