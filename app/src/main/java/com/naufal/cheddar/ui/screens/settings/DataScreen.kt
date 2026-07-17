@@ -46,7 +46,7 @@ fun DataScreen(onBack: () -> Unit) {
                 .verticalScroll(rememberScrollState())
         ) {
             Text(
-                text = "General",
+                text = "Data",
                 style = MaterialTheme.typography.displayMedium,
                 color = MaterialTheme.colorScheme.onBackground,
                 modifier = Modifier.padding(vertical = 16.dp)

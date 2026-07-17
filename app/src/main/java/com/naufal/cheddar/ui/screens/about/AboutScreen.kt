@@ -92,7 +92,7 @@ fun AboutScreen(onBack: () -> Unit) {
                         color = MaterialTheme.colorScheme.primary.copy(alpha = 0.15f)
                     ) {
                         Text(
-                            text = "Version 2.4.0",
+                            text = "Version 2.4.1",
                             modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp),
                             style = MaterialTheme.typography.labelMedium,
                             color = MaterialTheme.colorScheme.primary
