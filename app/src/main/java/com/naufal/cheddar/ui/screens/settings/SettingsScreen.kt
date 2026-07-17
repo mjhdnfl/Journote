@@ -12,7 +12,7 @@ import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Language
 import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material.icons.filled.Notifications
-import androidx.compose.material.icons.filled.Palette
+import androidx.compose.material.icons.filled.DisplaySettings
 import androidx.compose.material.icons.filled.Storage
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -83,7 +83,7 @@ fun SettingsScreen(
                     SettingsBlockItem(
                         title = "Appearance",
                         subtitle = "Themes, layout, and visuals",
-                        icon = Icons.Default.Palette,
+                        icon = Icons.Default.DisplaySettings,
                         iconBgColor = Color(0xFF8E5A69),
                         onClick = onNavigateToAppearance
                     )

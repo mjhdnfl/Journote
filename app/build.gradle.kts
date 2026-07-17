@@ -16,8 +16,8 @@ android {
         applicationId = "com.naufal.cheddar"
         minSdk = 24
         targetSdk = 36
-        versionCode = 5
-        versionName = "2.3.0"
+        versionCode = 6
+        versionName = "2.4.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
@@ -30,6 +30,7 @@ android {
         }
     }
     compileOptions {
+        isCoreLibraryDesugaringEnabled = true
         sourceCompatibility = JavaVersion.VERSION_11
         targetCompatibility = JavaVersion.VERSION_11
     }
@@ -66,4 +67,5 @@ dependencies {
     implementation("androidx.compose.material3:material3:1.3.0")
     implementation("androidx.appcompat:appcompat:1.7.0")
     implementation("androidx.navigation:navigation-compose:2.7.7")
+    coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:2.0.4")
 }

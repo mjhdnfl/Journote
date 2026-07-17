@@ -1,130 +1,112 @@
 package com.naufal.cheddar.ui.screens.collections
 
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.lazy.grid.*
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
-import androidx.compose.material.icons.outlined.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import androidx.compose.foundation.shape.RoundedCornerShape
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun CollectionsScreen(
     archiveCount: Int,
     onNavigateToArchive: () -> Unit
 ) {
-    Scaffold(
-        topBar = {
-            LargeTopAppBar(
-                title = {
-                    Text(
-                        text = "Library",
-                        // Forces the custom stretched font style to apply
-                        style = MaterialTheme.typography.displayMedium.copy(fontWeight = FontWeight.Black)
-                    )
-                },
-                colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = MaterialTheme.colorScheme.background
-                )
+
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(horizontal = 16.dp)
+    ) {
+        Spacer(modifier = Modifier.height(48.dp))
+
+        // M3E Section: Primary Nodes (Favorites & Archive)
+        Row(
+            modifier = Modifier.fillMaxWidth().height(160.dp),
+            horizontalArrangement = Arrangement.spacedBy(16.dp)
+        ) {
+            CollectionNode(
+                title = "Favorites",
+                count = 0, // Hook up to your favorites state
+                icon = Icons.Default.FavoriteBorder,
+                modifier = Modifier.weight(1f),
+                onClick = { /* TODO */ }
+            )
+            CollectionNode(
+                title = "Archive",
+                count = archiveCount,
+                icon = Icons.Default.Archive,
+                modifier = Modifier.weight(1f),
+                onClick = onNavigateToArchive
             )
         }
-    ) { innerPadding ->
-        LazyVerticalGrid(
-            columns = GridCells.Fixed(2),
-            contentPadding = PaddingValues(16.dp),
-            horizontalArrangement = Arrangement.spacedBy(12.dp),
-            verticalArrangement = Arrangement.spacedBy(12.dp),
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(innerPadding)
+
+        Spacer(modifier = Modifier.height(32.dp))
+
+        Text(
+            text = "Your Tags",
+            style = MaterialTheme.typography.titleMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            modifier = Modifier.padding(start = 8.dp, bottom = 12.dp)
+        )
+
+        // Tag List - M3E style
+        LazyColumn(
+            verticalArrangement = Arrangement.spacedBy(8.dp)
         ) {
-            item {
-                CollectionFolderCard(
-                    title = "Favorites",
-                    icon = Icons.Default.Favorite,
-                    iconTint = MaterialTheme.colorScheme.error,
-                    itemCount = 0,
-                    onClick = { /* TODO: Navigate to Favorites */ }
-                )
-            }
-            item {
-                CollectionFolderCard(
-                    title = "Archive",
-                    icon = Icons.Default.Archive,
-                    iconTint = MaterialTheme.colorScheme.primary,
-                    itemCount = archiveCount,
-                    onClick = onNavigateToArchive
-                )
-            }
-
-            item(span = { GridItemSpan(2) }) {
-                Text(
-                    text = "Your Tags",
-                    style = MaterialTheme.typography.titleMedium,
-                    modifier = Modifier.padding(top = 16.dp, bottom = 4.dp),
-                    color = MaterialTheme.colorScheme.primary
-                )
-            }
-
-            item {
-                CollectionFolderCard(
-                    title = "Ideas",
-                    icon = Icons.Outlined.Tag,
-                    iconTint = MaterialTheme.colorScheme.tertiary,
-                    itemCount = 3,
-                    onClick = { /* TODO: Navigate to Tag Filter */ }
-                )
+            // Placeholder tags - you can pass your list of tags into this Composable
+            val tags = listOf("Ideas" to 3, "Personal" to 12, "Work" to 5)
+            items(tags) { (name, count) ->
+                TagListItem(name = name, count = count)
             }
         }
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun CollectionFolderCard(
-    title: String,
-    icon: ImageVector,
-    iconTint: Color,
-    itemCount: Int,
-    onClick: () -> Unit
-) {
-    OutlinedCard(
+fun CollectionNode(title: String, count: Int, icon: ImageVector, modifier: Modifier, onClick: () -> Unit) {
+    Surface(
         onClick = onClick,
-        shape = MaterialTheme.shapes.medium,
-        modifier = Modifier.fillMaxWidth().aspectRatio(1f)
+        shape = RoundedCornerShape(28.dp),
+        color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.6f),
+        modifier = modifier.fillMaxHeight()
     ) {
         Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(16.dp),
+            modifier = Modifier.padding(20.dp),
             verticalArrangement = Arrangement.SpaceBetween
         ) {
-            Icon(
-                imageVector = icon,
-                contentDescription = title,
-                tint = iconTint,
-                modifier = Modifier.size(32.dp)
-            )
-
+            Icon(icon, contentDescription = null, tint = MaterialTheme.colorScheme.primary)
             Column {
-                Text(
-                    text = title,
-                    style = MaterialTheme.typography.titleMedium,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis
-                )
-                Text(
-                    text = "$itemCount entries",
-                    style = MaterialTheme.typography.labelMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
+                Text(title, style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.SemiBold)
+                Text("$count entries", style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            }
+        }
+    }
+}
+
+@Composable
+fun TagListItem(name: String, count: Int) {
+    Surface(
+        shape = RoundedCornerShape(16.dp),
+        color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f),
+        modifier = Modifier.fillMaxWidth()
+    ) {
+        Row(
+            modifier = Modifier.padding(16.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Icon(Icons.Default.Tag, contentDescription = null, tint = MaterialTheme.colorScheme.primary)
+            Spacer(modifier = Modifier.width(16.dp))
+            Column {
+                Text(name, style = MaterialTheme.typography.titleMedium)
+                Text("$count entries", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
             }
         }
     }
